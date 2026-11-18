@@ -1,3 +1,7 @@
+<p align="left">
+  <img src="assets/nurra-logo.png" width="140" alt="Nurra Logo">
+</p>
+
 # 🌙 Nurra
 
 ### Your Daily Islamic Companion
