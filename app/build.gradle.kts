@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "com.example.nurra"
+    namespace = "com.nurra.islamic"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.nurra"
-        minSdk = 24
+        applicationId = "com.nurra.islamic"
+        minSdk = 27
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -45,6 +45,19 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
