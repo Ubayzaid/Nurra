@@ -116,4 +116,100 @@ class CacheManager(private val context: Context) {
             null
         }
     }
+
+    // Storage Size Calculations & File Operations
+    fun getCacheSize(): Long {
+        var size = 0L
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (!file.name.startsWith("surah_ayahs_") && !file.name.startsWith("surahs_cache")) {
+                    size += file.length()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return size
+    }
+
+    fun getOfflineQuranSize(): Long {
+        var size = 0L
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("surah_ayahs_") || file.name.startsWith("surahs_cache")) {
+                    size += file.length()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return size
+    }
+
+    fun getDownloadedSurahIds(): List<Int> {
+        val list = mutableListOf<Int>()
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("surah_ayahs_") && file.name.endsWith(".json")) {
+                    val idStr = file.name.replace("surah_ayahs_", "").replace(".json", "")
+                    idStr.toIntOrNull()?.let { list.add(it) }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return list.sorted()
+    }
+
+    fun getSurahFileSize(surahId: Int): Long {
+        return try {
+            val file = File(context.cacheDir, "surah_ayahs_$surahId.json")
+            if (file.exists()) file.length() else 0L
+        } catch (e: Exception) {
+            0L
+        }
+    }
+
+    fun deleteDownloadedSurah(surahId: Int): Boolean {
+        return try {
+            val file = File(context.cacheDir, "surah_ayahs_$surahId.json")
+            if (file.exists()) file.delete() else false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun deleteAllDownloadedSurahs() {
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (file.name.startsWith("surah_ayahs_") && file.name.endsWith(".json")) {
+                    file.delete()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun clearTemporaryCache() {
+        try {
+            context.cacheDir.listFiles()?.forEach { file ->
+                if (!file.name.startsWith("surah_ayahs_") && !file.name.startsWith("surahs_cache")) {
+                    file.delete()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun formatFileSize(bytes: Long): String {
+        if (bytes <= 0) return "0 KB"
+        val kb = bytes / 1024.0
+        val mb = kb / 1024.0
+        return when {
+            mb >= 1.0 -> "%.2f MB".format(mb)
+            else -> "%.1f KB".format(kb)
+        }
+    }
 }

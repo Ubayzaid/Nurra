@@ -87,6 +87,12 @@ class HomeViewModel(
     private val _ibadahSummary = MutableStateFlow(IbadahSummary())
     val ibadahSummaryState: StateFlow<IbadahSummary> = _ibadahSummary.asStateFlow()
 
+    private val _currentHadith = MutableStateFlow(hadithRepository.getDailyHadith())
+    val currentHadithState: StateFlow<Hadith> = _currentHadith.asStateFlow()
+
+    private val _isHadithLoading = MutableStateFlow(false)
+    val isHadithLoadingState: StateFlow<Boolean> = _isHadithLoading.asStateFlow()
+
     private var tickerJob: Job? = null
 
     init {
@@ -100,6 +106,15 @@ class HomeViewModel(
                 updateLiveCountdown()
                 delay(1000) // Ticker runs every 1 second locally
             }
+        }
+    }
+
+    fun refreshRandomHadith() {
+        viewModelScope.launch {
+            _isHadithLoading.value = true
+            delay(500) // Smooth loading feedback
+            _currentHadith.value = hadithRepository.getRandomHadith()
+            _isHadithLoading.value = false
         }
     }
 
@@ -234,6 +249,6 @@ class HomeViewModel(
     }
 
     fun getDailyHadith(): Hadith {
-        return hadithRepository.getDailyHadith()
+        return _currentHadith.value
     }
 }

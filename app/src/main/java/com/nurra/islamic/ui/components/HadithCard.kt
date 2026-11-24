@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatQuote
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +39,8 @@ import com.nurra.islamic.ui.theme.ArabicTextStyle
 @Composable
 fun HadithCard(
     hadith: Hadith,
+    isLoading: Boolean = false,
+    onRefreshClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -60,7 +65,7 @@ fun HadithCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Header Row: Category Badge & Share Button
+            // Header Row: Category Badge & Action Buttons (Refresh + Share)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,25 +94,52 @@ fun HadithCard(
                     }
                 }
 
-                IconButton(
-                    onClick = {
-                        val shareIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                "\"${hadith.title}\"\n\n${hadith.arabicText}\n\n\"${hadith.indonesianTranslation}\"\n\n(${hadith.source} - ${hadith.bookName} No. ${hadith.hadithNumber}) via Aplikasi Nurra"
-                            )
-                            type = "text/plain"
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Refresh / Reload Hadith Button (with loading spinner)
+                    if (onRefreshClick != null) {
+                        IconButton(
+                            onClick = onRefreshClick,
+                            enabled = !isLoading,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Muat Hadits Baru",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
-                        context.startActivity(Intent.createChooser(shareIntent, "Bagikan Hadits"))
-                    },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Bagikan Hadits",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
+                    // Share Button
+                    IconButton(
+                        onClick = {
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "\"${hadith.title}\"\n\n${hadith.arabicText}\n\n\"${hadith.indonesianTranslation}\"\n\n(${hadith.source} - ${hadith.bookName} No. ${hadith.hadithNumber}) via Aplikasi Nurra"
+                                )
+                                type = "text/plain"
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Bagikan Hadits"))
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Bagikan Hadits",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 

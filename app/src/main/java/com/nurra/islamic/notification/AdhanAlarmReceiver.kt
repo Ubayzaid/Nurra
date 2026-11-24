@@ -18,10 +18,13 @@ class AdhanAlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val prayerName = intent.getStringExtra("EXTRA_PRAYER_NAME") ?: "Salat"
-        val isPrePrayer = intent.getBooleanVariable("EXTRA_IS_PRE_PRAYER", false)
+        val isPrePrayer = intent.getBooleanExtra("EXTRA_IS_PRE_PRAYER", false)
+        val isSnooze = intent.getBooleanExtra("EXTRA_IS_SNOOZE", false)
         val minutesBefore = intent.getIntExtra("EXTRA_PRE_MINUTES", 10)
 
-        Log.d("AdhanAlarmReceiver", "Adhan Alarm Fired for: $prayerName (isPre = $isPrePrayer)")
+        val notifId = prayerName.hashCode() + if (isPrePrayer) 100 else 0
+
+        Log.d("AdhanAlarmReceiver", "Adhan Alarm Fired for: $prayerName (isPre = $isPrePrayer, isSnooze = $isSnooze)")
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "nurra_adhan_channel"
@@ -48,39 +51,63 @@ class AdhanAlarmReceiver : BroadcastReceiver() {
         val mainIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
-        val pendingIntent = PendingIntent.getActivity(
+        val pendingMainIntent = PendingIntent.getActivity(
             context,
-            prayerName.hashCode(),
+            notifId,
             mainIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = if (isPrePrayer) {
-            "Pengingat $minutesBefore Menit Sebelum Salat $prayerName"
-        } else {
-            "Waktu Salat $prayerName Telah Tiba 🕌"
+        // Action 1: "Sudah Salat"
+        val markCompletedIntent = Intent(context, AdhanActionReceiver::class.java).apply {
+            action = AdhanActionReceiver.ACTION_MARK_PRAYER_COMPLETED
+            putExtra("EXTRA_PRAYER_NAME", prayerName)
+            putExtra("EXTRA_NOTIF_ID", notifId)
+        }
+        val markCompletedPendingIntent = PendingIntent.getBroadcast(
+            context,
+            notifId + 1000,
+            markCompletedIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Action 2: "Ingatkan 10 Menit Lagi"
+        val snoozeIntent = Intent(context, AdhanActionReceiver::class.java).apply {
+            action = AdhanActionReceiver.ACTION_SNOOZE_10_MINUTES
+            putExtra("EXTRA_PRAYER_NAME", prayerName)
+            putExtra("EXTRA_NOTIF_ID", notifId)
+        }
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            context,
+            notifId + 2000,
+            snoozeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val title = when {
+            isSnooze -> "⏰ Pengingat Lanjutan Salat $prayerName"
+            isPrePrayer -> "⌛ $minutesBefore Menit Sebelum Salat $prayerName"
+            else -> "🌙 Waktu Salat $prayerName"
         }
 
-        val body = if (isPrePrayer) {
-            "Persiapkan diri untuk menunaikan salat $prayerName dalam $minutesBefore menit lagi."
-        } else {
-            "Saatnya menunaikan ibadah salat $prayerName. Mari utamakan salat tepat waktu."
+        val body = when {
+            isSnooze -> "Pengingat 10 menit telah berlalu. Yuk, tunaikan salat $prayerName sekarang."
+            isPrePrayer -> "Persiapkan diri untuk menunaikan salat $prayerName dalam $minutesBefore menit lagi."
+            else -> "Waktu $prayerName telah tiba. Yuk, tunaikan salat dan jangan lupa berdoa."
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_crescent)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(pendingMainIntent)
+            .addAction(0, "Sudah Salat", markCompletedPendingIntent)
+            .addAction(0, "Ingatkan 10 Menit Lagi", snoozePendingIntent)
             .build()
 
-        notificationManager.notify(prayerName.hashCode() + if (isPrePrayer) 100 else 0, notification)
-    }
-
-    private fun Intent.getBooleanVariable(key: String, defaultValue: Boolean): Boolean {
-        return getBooleanExtra(key, defaultValue)
+        notificationManager.notify(notifId, notification)
     }
 }

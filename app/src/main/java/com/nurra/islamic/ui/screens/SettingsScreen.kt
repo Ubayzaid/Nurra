@@ -63,18 +63,20 @@ fun SettingsScreen(
     onNavigateToAppearance: () -> Unit,
     onNavigateToLocationPicker: () -> Unit,
     onNavigateToNotification: () -> Unit,
+    onNavigateToStorage: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val settings by viewModel.settings.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    val allCategories = remember(onNavigateToAppearance, onNavigateToLocationPicker, onNavigateToNotification) {
+    val allCategories = remember(onNavigateToAppearance, onNavigateToLocationPicker, onNavigateToNotification, onNavigateToStorage, onNavigateToAbout) {
         listOf(
             SettingsCategoryItem("Tampilan", Icons.Default.Palette, onNavigateToAppearance),
             SettingsCategoryItem("Lokasi & Jadwal Salat", Icons.Default.LocationOn, onNavigateToLocationPicker),
             SettingsCategoryItem("Notifikasi & Pengingat", Icons.Default.Notifications, onNavigateToNotification),
-            SettingsCategoryItem("Data & Penyimpanan", Icons.Default.Storage) { },
-            SettingsCategoryItem("Tentang Nurra", Icons.Default.Info) { }
+            SettingsCategoryItem("Data & Penyimpanan", Icons.Default.Storage, onNavigateToStorage),
+            SettingsCategoryItem("Tentang Nurra", Icons.Default.Info, onNavigateToAbout)
         )
     }
 

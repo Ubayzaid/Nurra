@@ -54,6 +54,9 @@ fun HomeScreen(
     val locationState by locationViewModel.uiState.collectAsState()
     val settings by settingsViewModel.settings.collectAsState()
 
+    val currentHadith by viewModel.currentHadithState.collectAsState()
+    val isHadithLoading by viewModel.isHadithLoadingState.collectAsState()
+
     val notificationScheduler = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -180,10 +183,12 @@ fun HomeScreen(
                 }
             }
 
-            // 4. Hadits Hari Ini (HR. Bukhari No. 13)
+            // 4. Hadits Hari Ini (with Reload Button beside Share)
             item {
                 HadithCard(
-                    hadith = viewModel.getDailyHadith()
+                    hadith = currentHadith,
+                    isLoading = isHadithLoading,
+                    onRefreshClick = { viewModel.refreshRandomHadith() }
                 )
             }
 

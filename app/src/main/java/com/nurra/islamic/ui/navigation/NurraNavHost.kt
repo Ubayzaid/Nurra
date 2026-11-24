@@ -9,17 +9,27 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.nurra.islamic.ui.screens.AboutScreen
+import com.nurra.islamic.ui.screens.AppUpdateScreen
 import com.nurra.islamic.ui.screens.AppearanceSettingsScreen
+import com.nurra.islamic.ui.screens.DataSourceInfoScreen
+import com.nurra.islamic.ui.screens.DeveloperInfoScreen
 import com.nurra.islamic.ui.screens.DoaScreen
+import com.nurra.islamic.ui.screens.GitHubInfoScreen
 import com.nurra.islamic.ui.screens.HomeScreen
+import com.nurra.islamic.ui.screens.LicensesInfoScreen
 import com.nurra.islamic.ui.screens.LocationSettingsScreen
+import com.nurra.islamic.ui.screens.ManageDownloadsScreen
 import com.nurra.islamic.ui.screens.NotificationSettingsScreen
 import com.nurra.islamic.ui.screens.PrayerScreen
+import com.nurra.islamic.ui.screens.PrivacyPolicyScreen
 import com.nurra.islamic.ui.screens.QiblaScreen
 import com.nurra.islamic.ui.screens.QuranScreen
 import com.nurra.islamic.ui.screens.SettingsScreen
+import com.nurra.islamic.ui.screens.StorageSettingsScreen
 import com.nurra.islamic.ui.screens.SurahDetailScreen
 import com.nurra.islamic.ui.screens.TasbihScreen
+import com.nurra.islamic.ui.screens.TechStackInfoScreen
 import com.nurra.islamic.viewmodel.DoaViewModel
 import com.nurra.islamic.viewmodel.HomeViewModel
 import com.nurra.islamic.viewmodel.LocationViewModel
@@ -118,7 +128,9 @@ fun NurraNavHost(
                 viewModel = settingsViewModel,
                 onNavigateToAppearance = { navController.navigate(Screen.AppearanceSettings.route) },
                 onNavigateToLocationPicker = { navController.navigate(Screen.LocationSettings.route) },
-                onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) }
+                onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
+                onNavigateToStorage = { navController.navigate(Screen.StorageSettings.route) },
+                onNavigateToAbout = { navController.navigate(Screen.AboutSettings.route) }
             )
         }
 
@@ -141,6 +153,76 @@ fun NurraNavHost(
         composable(Screen.NotificationSettings.route) {
             NotificationSettingsScreen(
                 viewModel = settingsViewModel,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.StorageSettings.route) {
+            StorageSettingsScreen(
+                viewModel = settingsViewModel,
+                onNavigateToManageDownloads = { navController.navigate(Screen.ManageDownloads.route) },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.ManageDownloads.route) {
+            ManageDownloadsScreen(
+                quranViewModel = quranViewModel,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AboutSettings.route) {
+            AboutScreen(
+                onNavigateToUpdate = { navController.navigate(Screen.AppUpdate.route) },
+                onNavigateToGitHub = { navController.navigate(Screen.GitHubInfo.route) },
+                onNavigateToDeveloper = { navController.navigate(Screen.DeveloperInfo.route) },
+                onNavigateToDataSource = { navController.navigate(Screen.DataSourceInfo.route) },
+                onNavigateToTechStack = { navController.navigate(Screen.TechStackInfo.route) },
+                onNavigateToLicenses = { navController.navigate(Screen.LicensesInfo.route) },
+                onNavigateToPrivacy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AppUpdate.route) {
+            AppUpdateScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.GitHubInfo.route) {
+            GitHubInfoScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.DeveloperInfo.route) {
+            DeveloperInfoScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.DataSourceInfo.route) {
+            DataSourceInfoScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.TechStackInfo.route) {
+            TechStackInfoScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.LicensesInfo.route) {
+            LicensesInfoScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

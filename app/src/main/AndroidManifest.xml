@@ -30,6 +30,11 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="com.nurra.islamic.notification.AdhanActionReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
         <activity
             android:name="com.nurra.islamic.MainActivity"
             android:exported="true"
