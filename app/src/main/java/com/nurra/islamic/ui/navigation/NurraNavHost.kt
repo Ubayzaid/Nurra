@@ -1,5 +1,12 @@
 package com.nurra.islamic.ui.navigation
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,7 +64,43 @@ fun NurraNavHost(
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it / 6 },
+                animationSpec = spring(
+                    dampingRatio = 0.9f,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeIn(tween(220))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 12 },
+                animationSpec = spring(
+                    dampingRatio = 1f,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeOut(tween(150))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 12 },
+                animationSpec = spring(
+                    dampingRatio = 0.9f,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeIn(tween(200))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it / 6 },
+                animationSpec = spring(
+                    dampingRatio = 1f,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeOut(tween(150))
+        }
     ) {
         composable(Screen.Home.route) {
             HomeScreen(

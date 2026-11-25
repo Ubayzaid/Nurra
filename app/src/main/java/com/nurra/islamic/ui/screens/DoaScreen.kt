@@ -1,5 +1,12 @@
 package com.nurra.islamic.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -128,19 +135,29 @@ fun DoaScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Doa Items List
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                items(
-                    items = doas,
-                    key = { it.id }
-                ) { doa ->
-                    DoaCard(
-                        doa = doa,
-                        onFavoriteToggle = { viewModel.toggleFavorite(doa.id) }
-                    )
+            // Animated Doa Items List
+            AnimatedContent(
+                targetState = selectedCategory,
+                transitionSpec = {
+                    (fadeIn(tween(220)) + scaleIn(initialScale = 0.95f)) togetherWith
+                    (fadeOut(tween(120)) + scaleOut(targetScale = 0.95f))
+                },
+                label = "DoaCategoryAnimation"
+            ) { targetCategory ->
+                val displayList = doas.filter { targetCategory == DoaCategory.SEMUA || it.category == targetCategory }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 90.dp)
+                ) {
+                    items(
+                        items = displayList,
+                        key = { it.id }
+                    ) { doa ->
+                        DoaCard(
+                            doa = doa,
+                            onFavoriteToggle = { viewModel.toggleFavorite(doa.id) }
+                        )
+                    }
                 }
             }
         }

@@ -1,5 +1,12 @@
 package com.nurra.islamic.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -127,20 +134,30 @@ fun QuranScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Surah List
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 90.dp)
-            ) {
-                items(
-                    items = surahs,
-                    key = { it.id }
-                ) { surah ->
-                    SurahListItem(
-                        surah = surah,
-                        onClick = { onNavigateToSurahDetail(surah.id) },
-                        onBookmarkToggle = { viewModel.toggleSurahBookmark(surah.id) }
-                    )
+            // Animated Tab Content (FadeIn + ScaleIn 0.95f -> FadeOut + ScaleOut 0.95f)
+            AnimatedContent(
+                targetState = selectedTab,
+                transitionSpec = {
+                    (fadeIn(tween(220)) + scaleIn(initialScale = 0.95f)) togetherWith
+                    (fadeOut(tween(120)) + scaleOut(targetScale = 0.95f))
+                },
+                label = "QuranTabAnimation"
+            ) { targetTab ->
+                val displayList = if (targetTab == QuranFilterTab.BOOKMARKS) surahs.filter { it.isBookmarked } else surahs
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 90.dp)
+                ) {
+                    items(
+                        items = displayList,
+                        key = { it.id }
+                    ) { surah ->
+                        SurahListItem(
+                            surah = surah,
+                            onClick = { onNavigateToSurahDetail(surah.id) },
+                            onBookmarkToggle = { viewModel.toggleSurahBookmark(surah.id) }
+                        )
+                    }
                 }
             }
         }
