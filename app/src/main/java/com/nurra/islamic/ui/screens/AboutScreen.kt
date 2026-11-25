@@ -3,6 +3,7 @@ package com.nurra.islamic.ui.screens
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Storage
@@ -43,9 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nurra.islamic.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +114,7 @@ fun AboutScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 90.dp)
         ) {
-            // Header Identity Card (Logo on the LEFT, Name & Info on the RIGHT)
+            // Header Identity Card (Official GitHub Nurra PNG Logo on the LEFT)
             item {
                 Card(
                     modifier = Modifier
@@ -131,19 +133,18 @@ fun AboutScreen(
                             .padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // App Logo Icon strictly on the LEFT
+                        // Official Nurra PNG Logo strictly on the LEFT
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(68.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Mosque,
-                                    contentDescription = "Logo Nurra",
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(36.dp)
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_nurra_logo),
+                                    contentDescription = "Logo Resmi Nurra",
+                                    modifier = Modifier.size(56.dp)
                                 )
                             }
                         }
