@@ -41,12 +41,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.nurra.islamic.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +81,21 @@ fun AboutScreen(
             "${pInfo.versionName} (Build 2026.1)"
         } catch (e: Throwable) {
             "1.0.0 (Build 2026.1)"
+        }
+    }
+
+    val logoBitmap = remember(context) {
+        try {
+            val drawable = ContextCompat.getDrawable(context, R.mipmap.ic_launcher_round)
+                ?: ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+                ?: ContextCompat.getDrawable(context, R.drawable.ic_nurra_logo)
+            drawable?.let { d ->
+                val w = if (d.intrinsicWidth > 0) d.intrinsicWidth else 108
+                val h = if (d.intrinsicHeight > 0) d.intrinsicHeight else 108
+                d.toBitmap(w, h).asImageBitmap()
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -141,11 +159,19 @@ fun AboutScreen(
                             modifier = Modifier.size(68.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Image(
-                                    painter = painterResource(id = R.mipmap.ic_launcher_round),
-                                    contentDescription = "Logo Nurra",
-                                    modifier = Modifier.size(54.dp)
-                                )
+                                if (logoBitmap != null) {
+                                    Image(
+                                        bitmap = logoBitmap,
+                                        contentDescription = "Logo Nurra",
+                                        modifier = Modifier.size(54.dp)
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_nurra_logo),
+                                        contentDescription = "Logo Nurra",
+                                        modifier = Modifier.size(54.dp)
+                                    )
+                                }
                             }
                         }
 
