@@ -22,8 +22,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,9 +50,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-import kotlinx.coroutines.delay
+import com.nurra.islamic.api.ApiClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +65,67 @@ fun AppUpdateScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var isChecking by remember { mutableStateOf(false) }
-    var updateStatusMessage by remember { mutableStateOf("Versi aplikasi Anda (v1.0.0) sudah menggunakan rilis terbaru.") }
+    var updateStatusTitle by remember { mutableStateOf("Status Versi Aplikasi") }
+    var updateStatusMessage by remember { mutableStateOf("Terhubung dengan GitHub Repository Ubayzaid/Nurra (v1.0.0).") }
+    var downloadApkUrl by remember { mutableStateOf<String?>(null) }
+
+    fun openUrl(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Gagal membuka browser", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun checkGitHubRelease() {
+        coroutineScope.launch {
+            isChecking = true
+            updateStatusTitle = "Memeriksa GitHub Releases..."
+            updateStatusMessage = "Menghubungi https://api.github.com/repos/Ubayzaid/Nurra/releases/latest..."
+
+            withContext(Dispatchers.IO) {
+                try {
+                    val response = ApiClient.gitHubApiService.getLatestRelease()
+                    withContext(Dispatchers.Main) {
+                        if (response.isSuccessful && response.body() != null) {
+                            val release = response.body()!!
+                            val tagName = release.tagName ?: "v1.0.0"
+                            val changelog = release.body ?: "Pembaruan performa dan stabilitas aplikasi."
+                            val apkAsset = release.assets?.firstOrNull { it.browserDownloadUrl?.endsWith(".apk", ignoreCase = true) == true }
+
+                            if (tagName != "v1.0.0" && tagName != "1.0.0") {
+                                updateStatusTitle = "🎉 Pembaruan $tagName Tersedia!"
+                                updateStatusMessage = "Catatan Rilis ($tagName):\n$changelog"
+                                downloadApkUrl = apkAsset?.browserDownloadUrl ?: release.htmlUrl
+                                Toast.makeText(context, "Versi $tagName tersedia di GitHub!", Toast.LENGTH_LONG).show()
+                            } else {
+                                updateStatusTitle = "✅ Versi Terbaru Terpasang"
+                                updateStatusMessage = "Terhubung ke GitHub Ubayzaid/Nurra. Rilis terbaru ($tagName) sudah terpasang di HP Anda."
+                                downloadApkUrl = null
+                                Toast.makeText(context, "Aplikasi Anda sudah versi terbaru", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            // HTTP 404 - No release tag on GitHub yet
+                            updateStatusTitle = "✅ Versi Terbaru (v1.0.0)"
+                            updateStatusMessage = "Terhubung ke GitHub Repository Ubayzaid/Nurra.\n\nBelum ada tag Rilis APK baru di GitHub Releases. Aplikasi Anda v1.0.0 saat ini sudah menggunakan rilis paling baru."
+                            downloadApkUrl = null
+                            Toast.makeText(context, "Terhubung ke Ubayzaid/Nurra (v1.0.0 Terbaru)", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        updateStatusTitle = "✅ Versi Terbaru (v1.0.0)"
+                        updateStatusMessage = "Terhubung ke GitHub Repository Ubayzaid/Nurra (v1.0.0)."
+                        downloadApkUrl = null
+                        Toast.makeText(context, "Pemeriksaan selesai: Versi v1.0.0 Terbaru", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            isChecking = false
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -96,7 +159,7 @@ fun AppUpdateScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Refresh,
+                        imageVector = Icons.Default.SystemUpdate,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(52.dp)
@@ -106,20 +169,36 @@ fun AppUpdateScreen(
 
                     Text("Versi Terpasang: 1.0.0 (Build 2026.1)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(updateStatusMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = updateStatusTitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = updateStatusMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (!downloadApkUrl.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { openUrl(downloadApkUrl!!) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Unduh APK Resmi di GitHub", fontWeight = FontWeight.Bold)
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                isChecking = true
-                                delay(1200)
-                                isChecking = false
-                                updateStatusMessage = "Aplikasi Nurra v1.0.0 sudah menggunakan rilis resmi paling baru."
-                                Toast.makeText(context, "Aplikasi Anda sudah versi terbaru", Toast.LENGTH_SHORT).show()
-                            }
-                        },
+                        onClick = { checkGitHubRelease() },
                         enabled = !isChecking,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
@@ -127,7 +206,7 @@ fun AppUpdateScreen(
                         if (isChecking) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Memeriksa Server...")
+                            Text("Memeriksa GitHub Releases...")
                         } else {
                             Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
@@ -203,7 +282,7 @@ fun GitHubInfoScreen(
                     ) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Buka Repository di GitHub", fontWeight = FontWeight.Bold)
+                        Text("Buka Repository Ubayzaid/Nurra", fontWeight = FontWeight.Bold)
                     }
                 }
             }

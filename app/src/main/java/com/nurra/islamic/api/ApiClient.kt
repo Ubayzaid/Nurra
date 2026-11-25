@@ -10,6 +10,7 @@ object ApiClient {
 
     private const val BASE_URL = "https://api.myquran.com/v2/"
     private const val EQURAN_BASE_URL = "https://equran.id/api/v2/"
+    private const val GITHUB_BASE_URL = "https://api.github.com/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -37,5 +38,14 @@ object ApiClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(EQuranApiService::class.java)
+    }
+
+    val gitHubApiService: GitHubReleaseApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(GITHUB_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(GitHubReleaseApiService::class.java)
     }
 }
