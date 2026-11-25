@@ -114,7 +114,7 @@ fun AboutScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 90.dp)
         ) {
-            // Header Identity Card (Official GitHub Nurra PNG Logo on the LEFT)
+            // Header Identity Card (ic_launcher_round Logo strictly on the LEFT)
             item {
                 Card(
                     modifier = Modifier
@@ -133,7 +133,7 @@ fun AboutScreen(
                             .padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Official Nurra PNG Logo strictly on the LEFT
+                        // App Launcher Icon strictly on the LEFT
                         Surface(
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.primaryContainer,
@@ -142,9 +142,9 @@ fun AboutScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_nurra_logo),
-                                    contentDescription = "Logo Resmi Nurra",
-                                    modifier = Modifier.size(56.dp)
+                                    painter = painterResource(id = R.mipmap.ic_launcher_round),
+                                    contentDescription = "Logo Nurra",
+                                    modifier = Modifier.size(54.dp)
                                 )
                             }
                         }
