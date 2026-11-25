@@ -2,6 +2,10 @@ package com.nurra.islamic.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.nurra.islamic.api.ApiClient
 import com.nurra.islamic.model.Ayah
 import com.nurra.islamic.model.FeaturedAyah
@@ -19,6 +23,7 @@ interface QuranRepository {
     fun getSurahs(): Flow<List<Surah>>
     fun getSurahById(id: Int): Surah?
     fun getAyahsBySurahId(surahId: Int): Flow<List<Ayah>>
+    fun getBookmarkedAyahs(): Flow<List<Ayah>>
     fun getFeaturedAyah(): FeaturedAyah
     fun toggleBookmarkSurah(surahId: Int)
     fun toggleBookmarkAyah(ayahId: Int)
@@ -29,10 +34,14 @@ class LocalQuranRepository(
 ) : QuranRepository {
 
     private val TAG = "NurraQuranRepo"
+    private val gson = Gson()
     private val cacheManager = context?.let { CacheManager(it) }
 
+    private val KEY_BOOKMARKED_SURAHS = stringPreferencesKey("bookmarked_surahs")
+    private val KEY_BOOKMARKED_AYAHS = stringPreferencesKey("bookmarked_ayahs")
+
     private val bookmarkedSurahIds = MutableStateFlow<Set<Int>>(setOf(1, 18, 36, 67))
-    private val bookmarkedAyahIds = MutableStateFlow<Set<Int>>(setOf(101, 107))
+    private val bookmarkedAyahIds = MutableStateFlow<Set<Int>>(setOf(1001, 18010))
 
     private val fallbackSurahs = listOf(
         Surah(1, "الفاتحة", "Al-Fatihah", "Pembukaan", 7, "Mekah"),
@@ -158,7 +167,38 @@ class LocalQuranRepository(
     private val liveAyahsMap = mutableMapOf<Int, MutableStateFlow<List<Ayah>>>()
 
     init {
+        loadBookmarksFromDataStore()
         fetchSurahsFromApi()
+    }
+
+    private fun loadBookmarksFromDataStore() {
+        if (context == null) return
+        CoroutineScope(Dispatchers.IO).launch {
+            context.dataStore.data.collect { prefs ->
+                val surahsJson = prefs[KEY_BOOKMARKED_SURAHS] ?: ""
+                val ayahsJson = prefs[KEY_BOOKMARKED_AYAHS] ?: ""
+
+                if (surahsJson.isNotBlank()) {
+                    try {
+                        val type = object : TypeToken<Set<Int>>() {}.type
+                        val set: Set<Int> = gson.fromJson(surahsJson, type)
+                        bookmarkedSurahIds.value = set
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                if (ayahsJson.isNotBlank()) {
+                    try {
+                        val type = object : TypeToken<Set<Int>>() {}.type
+                        val set: Set<Int> = gson.fromJson(ayahsJson, type)
+                        bookmarkedAyahIds.value = set
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
     }
 
     private fun sanitizeQuranicArabicText(rawText: String): String {
@@ -245,6 +285,36 @@ class LocalQuranRepository(
         }
     }
 
+    override fun getBookmarkedAyahs(): Flow<List<Ayah>> {
+        return bookmarkedAyahIds.map { ayahIds ->
+            val result = mutableListOf<Ayah>()
+            ayahIds.forEach { ayahId ->
+                val surahId = ayahId / 1000
+                val verseNum = ayahId % 1000
+                val cachedAyahs = cacheManager?.getSurahAyahs(surahId)
+                val ayah = cachedAyahs?.find { it.verseNumber == verseNum }
+                if (ayah != null) {
+                    result.add(ayah.copy(isBookmarked = true))
+                } else {
+                    // Fallback item
+                    val surahName = getSurahById(surahId)?.nameLatin ?: "Surah $surahId"
+                    result.add(
+                        Ayah(
+                            id = ayahId,
+                            surahId = surahId,
+                            verseNumber = verseNum,
+                            arabicText = "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً",
+                            latinText = "$surahName: Ayat $verseNum",
+                            indonesianTranslation = "Ayat tersimpan dari Surah $surahName",
+                            isBookmarked = true
+                        )
+                    )
+                }
+            }
+            result
+        }
+    }
+
     private fun fetchSurahDetailFromApi(surahId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -297,6 +367,14 @@ class LocalQuranRepository(
             current.add(surahId)
         }
         bookmarkedSurahIds.value = current
+
+        if (context != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                context.dataStore.edit { prefs ->
+                    prefs[KEY_BOOKMARKED_SURAHS] = gson.toJson(current)
+                }
+            }
+        }
     }
 
     override fun toggleBookmarkAyah(ayahId: Int) {
@@ -307,5 +385,13 @@ class LocalQuranRepository(
             current.add(ayahId)
         }
         bookmarkedAyahIds.value = current
+
+        if (context != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                context.dataStore.edit { prefs ->
+                    prefs[KEY_BOOKMARKED_AYAHS] = gson.toJson(current)
+                }
+            }
+        }
     }
 }

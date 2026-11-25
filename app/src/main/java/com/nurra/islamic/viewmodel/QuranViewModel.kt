@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 enum class QuranFilterTab {
@@ -35,6 +36,17 @@ class QuranViewModel(
     private val selectedTab = MutableStateFlow(QuranFilterTab.ALL)
     val tabState = selectedTab.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), QuranFilterTab.ALL)
 
+    val ibadahSummaryState: StateFlow<IbadahSummary> = settingsRepository.getSettings().map { settings ->
+        IbadahSummary(
+            completedPrayersCount = 4,
+            totalPrayersCount = 5,
+            tasbihCountToday = 132,
+            lastReadSurahName = settings.lastReadSurahName,
+            lastReadAyahNumber = settings.lastReadAyahNumber,
+            lastReadSurahId = settings.lastReadSurahId
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), IbadahSummary())
+
     val surahs: StateFlow<List<Surah>> = combine(
         repository.getSurahs(),
         searchQuery,
@@ -53,6 +65,9 @@ class QuranViewModel(
         }
         filtered
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val bookmarkedAyahs: StateFlow<List<Ayah>> = repository.getBookmarkedAyahs()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val selectedSurahId = MutableStateFlow(1)
 

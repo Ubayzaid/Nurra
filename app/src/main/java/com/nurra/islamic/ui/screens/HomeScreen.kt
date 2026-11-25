@@ -25,7 +25,6 @@ import com.nurra.islamic.notification.NotificationScheduler
 import com.nurra.islamic.ui.components.DateStepperBar
 import com.nurra.islamic.ui.components.HadithCard
 import com.nurra.islamic.ui.components.PrayerScheduleTable
-import com.nurra.islamic.ui.components.ResumeQuranCard
 import com.nurra.islamic.ui.components.SkyHeroSection
 import com.nurra.islamic.viewmodel.HomeViewModel
 import com.nurra.islamic.viewmodel.LocationViewModel
@@ -49,7 +48,6 @@ fun HomeScreen(
     val context = LocalContext.current
     val prayerSchedule by viewModel.prayerScheduleState.collectAsState()
     val liveCountdown by viewModel.liveCountdownState.collectAsState()
-    val ibadahSummary by viewModel.ibadahSummaryState.collectAsState()
     val activeLocation by locationViewModel.activeLocation.collectAsState()
     val locationState by locationViewModel.uiState.collectAsState()
     val settings by settingsViewModel.settings.collectAsState()
@@ -189,14 +187,6 @@ fun HomeScreen(
                     hadith = currentHadith,
                     isLoading = isHadithLoading,
                     onRefreshClick = { viewModel.refreshRandomHadith() }
-                )
-            }
-
-            // 5. Lanjutkan Al-Qur'an (Resume Reading)
-            item {
-                ResumeQuranCard(
-                    summary = ibadahSummary,
-                    onResumeReading = { surahId -> onNavigateToSurahDetail(surahId) }
                 )
             }
         }
