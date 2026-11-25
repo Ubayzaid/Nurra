@@ -14,9 +14,11 @@ import com.nurra.islamic.repository.LocalHadithRepository
 import com.nurra.islamic.repository.LocalLocationRepository
 import com.nurra.islamic.repository.LocalPrayerRepository
 import com.nurra.islamic.repository.LocalQuranRepository
+import com.nurra.islamic.repository.LocalSettingsRepository
 import com.nurra.islamic.repository.LocationRepository
 import com.nurra.islamic.repository.PrayerRepository
 import com.nurra.islamic.repository.QuranRepository
+import com.nurra.islamic.repository.SettingsRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -62,6 +65,7 @@ class HomeViewModel(
     private val prayerRepository: PrayerRepository = LocalPrayerRepository(application.applicationContext)
     private val hadithRepository: HadithRepository = LocalHadithRepository()
     private val locationRepository: LocationRepository = LocalLocationRepository(application.applicationContext)
+    private val settingsRepository: SettingsRepository = LocalSettingsRepository(application.applicationContext)
 
     val activeLocationState: StateFlow<UserLocation> = locationRepository.getActiveLocation()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UserLocation())
@@ -84,8 +88,16 @@ class HomeViewModel(
     private val _liveCountdown = MutableStateFlow(LiveCountdownState())
     val liveCountdownState: StateFlow<LiveCountdownState> = _liveCountdown.asStateFlow()
 
-    private val _ibadahSummary = MutableStateFlow(IbadahSummary())
-    val ibadahSummaryState: StateFlow<IbadahSummary> = _ibadahSummary.asStateFlow()
+    val ibadahSummaryState: StateFlow<IbadahSummary> = settingsRepository.getSettings().map { settings ->
+        IbadahSummary(
+            completedPrayersCount = 4,
+            totalPrayersCount = 5,
+            tasbihCountToday = 132,
+            lastReadSurahName = settings.lastReadSurahName,
+            lastReadAyahNumber = settings.lastReadAyahNumber,
+            lastReadSurahId = settings.lastReadSurahId
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), IbadahSummary())
 
     private val _currentHadith = MutableStateFlow(hadithRepository.getDailyHadith())
     val currentHadithState: StateFlow<Hadith> = _currentHadith.asStateFlow()

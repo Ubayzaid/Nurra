@@ -1,11 +1,15 @@
 package com.nurra.islamic.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.nurra.islamic.model.Ayah
 import com.nurra.islamic.model.Surah
 import com.nurra.islamic.repository.LocalQuranRepository
+import com.nurra.islamic.repository.LocalSettingsRepository
 import com.nurra.islamic.repository.QuranRepository
+import com.nurra.islamic.repository.SettingsRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +21,13 @@ enum class QuranFilterTab {
     ALL, BOOKMARKS
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class QuranViewModel(
-    private val repository: QuranRepository = LocalQuranRepository()
-) : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val repository: QuranRepository = LocalQuranRepository(application.applicationContext)
+    private val settingsRepository: SettingsRepository = LocalSettingsRepository(application.applicationContext)
 
     private val searchQuery = MutableStateFlow("")
     val searchState = searchQuery.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -68,6 +76,14 @@ class QuranViewModel(
 
     fun selectSurah(surahId: Int) {
         selectedSurahId.value = surahId
+        val surah = repository.getSurahById(surahId)
+        if (surah != null) {
+            settingsRepository.updateLastReadQuran(surahId, surah.nameLatin, 1)
+        }
+    }
+
+    fun updateLastReadPosition(surahId: Int, surahName: String, ayahNumber: Int) {
+        settingsRepository.updateLastReadQuran(surahId, surahName, ayahNumber)
     }
 
     fun toggleSurahBookmark(surahId: Int) {

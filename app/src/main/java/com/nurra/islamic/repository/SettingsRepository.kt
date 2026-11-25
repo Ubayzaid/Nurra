@@ -44,7 +44,10 @@ data class AppSettings(
     val notificationSoundType: String = "DEFAULT",
     val isDailyAyahNotificationEnabled: Boolean = true,
     val isTasbihVibrationEnabled: Boolean = true,
-    val isTasbihSoundEnabled: Boolean = false
+    val isTasbihSoundEnabled: Boolean = false,
+    val lastReadSurahId: Int = 18,
+    val lastReadSurahName: String = "Al-Kahf",
+    val lastReadAyahNumber: Int = 10
 )
 
 interface SettingsRepository {
@@ -63,6 +66,7 @@ interface SettingsRepository {
     fun toggleDailyAyahNotification(enabled: Boolean)
     fun toggleTasbihVibration(enabled: Boolean)
     fun toggleTasbihSound(enabled: Boolean)
+    fun updateLastReadQuran(surahId: Int, surahName: String, ayahNumber: Int = 1)
 }
 
 // DataStore Preferences extension on Context
@@ -94,6 +98,10 @@ class LocalSettingsRepository(
     private val KEY_DAILY_AYAH_NOTIF = booleanPreferencesKey("daily_ayah_notif")
     private val KEY_TASBIH_VIBE = booleanPreferencesKey("tasbih_vibe")
 
+    private val KEY_LAST_READ_SURAH_ID = intPreferencesKey("last_read_surah_id")
+    private val KEY_LAST_READ_SURAH_NAME = stringPreferencesKey("last_read_surah_name")
+    private val KEY_LAST_READ_AYAH_NUMBER = intPreferencesKey("last_read_ayah_number")
+
     private val inMemorySettings = MutableStateFlow(AppSettings())
 
     override fun getSettings(): Flow<AppSettings> {
@@ -124,7 +132,10 @@ class LocalSettingsRepository(
                 isNotificationSoundEnabled = prefs[KEY_NOTIF_SOUND] ?: true,
                 notificationSoundType = prefs[KEY_NOTIF_SOUND_TYPE] ?: "DEFAULT",
                 isDailyAyahNotificationEnabled = prefs[KEY_DAILY_AYAH_NOTIF] ?: true,
-                isTasbihVibrationEnabled = prefs[KEY_TASBIH_VIBE] ?: true
+                isTasbihVibrationEnabled = prefs[KEY_TASBIH_VIBE] ?: true,
+                lastReadSurahId = prefs[KEY_LAST_READ_SURAH_ID] ?: 18,
+                lastReadSurahName = prefs[KEY_LAST_READ_SURAH_NAME] ?: "Al-Kahf",
+                lastReadAyahNumber = prefs[KEY_LAST_READ_AYAH_NUMBER] ?: 10
             )
         }
     }
@@ -293,5 +304,23 @@ class LocalSettingsRepository(
 
     override fun toggleTasbihSound(enabled: Boolean) {
         // Reserved
+    }
+
+    override fun updateLastReadQuran(surahId: Int, surahName: String, ayahNumber: Int) {
+        if (context != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                context.dataStore.edit { prefs ->
+                    prefs[KEY_LAST_READ_SURAH_ID] = surahId
+                    prefs[KEY_LAST_READ_SURAH_NAME] = surahName
+                    prefs[KEY_LAST_READ_AYAH_NUMBER] = ayahNumber
+                }
+            }
+        } else {
+            inMemorySettings.value = inMemorySettings.value.copy(
+                lastReadSurahId = surahId,
+                lastReadSurahName = surahName,
+                lastReadAyahNumber = ayahNumber
+            )
+        }
     }
 }
