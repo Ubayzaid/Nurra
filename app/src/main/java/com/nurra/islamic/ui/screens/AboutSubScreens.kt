@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import com.nurra.islamic.R
 import com.nurra.islamic.api.ApiClient
@@ -76,6 +77,7 @@ import com.nurra.islamic.viewmodel.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,20 +124,49 @@ fun AppUpdateScreen(
         }
     }
 
-    fun shareApp() {
-        try {
-            val sendIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Yuk pakai Nurra - Teman ibadah dalam keseharian! Unduh rilis aplikasi Nurra di GitHub: https://github.com/Ubayzaid/Nurra"
-                )
-                type = "text/plain"
+    fun shareAppApk() {
+        coroutineScope.launch {
+            Toast.makeText(context, "Menyiapkan file APK Nurra...", Toast.LENGTH_SHORT).show()
+            val sharedUri = withContext(Dispatchers.IO) {
+                try {
+                    val sourceApk = File(context.applicationInfo.sourceDir)
+                    if (!sourceApk.exists()) return@withContext null
+
+                    val apkFileName = "Nurra_v1.0.0.apk"
+                    val destFile = File(context.cacheDir, apkFileName)
+                    sourceApk.copyTo(destFile, overwrite = true)
+
+                    FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider",
+                        destFile
+                    )
+                } catch (e: Exception) {
+                    null
+                }
             }
-            val shareIntent = Intent.createChooser(sendIntent, "Bagikan Aplikasi Nurra")
-            context.startActivity(shareIntent)
-        } catch (e: Exception) {
-            Toast.makeText(context, "Gagal membagikan aplikasi", Toast.LENGTH_SHORT).show()
+
+            if (sharedUri != null) {
+                try {
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "application/vnd.android.package-archive"
+                        putExtra(Intent.EXTRA_STREAM, sharedUri)
+                        putExtra(Intent.EXTRA_SUBJECT, "Aplikasi Nurra (APK)")
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "Berikut adalah file instalasi APK Nurra - Teman ibadah dalam keseharian."
+                        )
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val shareIntent = Intent.createChooser(sendIntent, "Bagikan File APK Nurra")
+                    context.startActivity(shareIntent)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Gagal membagikan file APK", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Gagal menyiapkan file APK", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -503,7 +534,7 @@ fun AppUpdateScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
                             Surface(
-                                onClick = { shareApp() },
+                                onClick = { shareAppApk() },
                                 color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -532,12 +563,12 @@ fun AppUpdateScreen(
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Bagikan Aplikasi",
+                                            text = "Bagikan File APK Nurra",
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = "Bagikan rilis dan aplikasi Nurra kepada keluarga dan sahabat.",
+                                            text = "Kirim file instalasi (.apk) Nurra langsung ke HP keluarga atau sahabat.",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
