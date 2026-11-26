@@ -45,6 +45,8 @@ data class AppSettings(
     val isDailyAyahNotificationEnabled: Boolean = true,
     val isTasbihVibrationEnabled: Boolean = true,
     val isTasbihSoundEnabled: Boolean = false,
+    val isAutoCheckUpdateEnabled: Boolean = true,
+    val isUpdateNotificationEnabled: Boolean = true,
     val lastReadSurahId: Int = 18,
     val lastReadSurahName: String = "Al-Kahf",
     val lastReadAyahNumber: Int = 10
@@ -66,6 +68,8 @@ interface SettingsRepository {
     fun toggleDailyAyahNotification(enabled: Boolean)
     fun toggleTasbihVibration(enabled: Boolean)
     fun toggleTasbihSound(enabled: Boolean)
+    fun toggleAutoCheckUpdate(enabled: Boolean)
+    fun toggleUpdateNotification(enabled: Boolean)
     fun updateLastReadQuran(surahId: Int, surahName: String, ayahNumber: Int = 1)
 }
 
@@ -97,6 +101,9 @@ class LocalSettingsRepository(
 
     private val KEY_DAILY_AYAH_NOTIF = booleanPreferencesKey("daily_ayah_notif")
     private val KEY_TASBIH_VIBE = booleanPreferencesKey("tasbih_vibe")
+
+    private val KEY_AUTO_CHECK_UPDATE = booleanPreferencesKey("auto_check_update")
+    private val KEY_UPDATE_NOTIF = booleanPreferencesKey("update_notif")
 
     private val KEY_LAST_READ_SURAH_ID = intPreferencesKey("last_read_surah_id")
     private val KEY_LAST_READ_SURAH_NAME = stringPreferencesKey("last_read_surah_name")
@@ -133,6 +140,8 @@ class LocalSettingsRepository(
                 notificationSoundType = prefs[KEY_NOTIF_SOUND_TYPE] ?: "DEFAULT",
                 isDailyAyahNotificationEnabled = prefs[KEY_DAILY_AYAH_NOTIF] ?: true,
                 isTasbihVibrationEnabled = prefs[KEY_TASBIH_VIBE] ?: true,
+                isAutoCheckUpdateEnabled = prefs[KEY_AUTO_CHECK_UPDATE] ?: true,
+                isUpdateNotificationEnabled = prefs[KEY_UPDATE_NOTIF] ?: true,
                 lastReadSurahId = prefs[KEY_LAST_READ_SURAH_ID] ?: 18,
                 lastReadSurahName = prefs[KEY_LAST_READ_SURAH_NAME] ?: "Al-Kahf",
                 lastReadAyahNumber = prefs[KEY_LAST_READ_AYAH_NUMBER] ?: 10
@@ -304,6 +313,30 @@ class LocalSettingsRepository(
 
     override fun toggleTasbihSound(enabled: Boolean) {
         // Reserved
+    }
+
+    override fun toggleAutoCheckUpdate(enabled: Boolean) {
+        if (context != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                context.dataStore.edit { prefs ->
+                    prefs[KEY_AUTO_CHECK_UPDATE] = enabled
+                }
+            }
+        } else {
+            inMemorySettings.value = inMemorySettings.value.copy(isAutoCheckUpdateEnabled = enabled)
+        }
+    }
+
+    override fun toggleUpdateNotification(enabled: Boolean) {
+        if (context != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                context.dataStore.edit { prefs ->
+                    prefs[KEY_UPDATE_NOTIF] = enabled
+                }
+            }
+        } else {
+            inMemorySettings.value = inMemorySettings.value.copy(isUpdateNotificationEnabled = enabled)
+        }
     }
 
     override fun updateLastReadQuran(surahId: Int, surahName: String, ayahNumber: Int) {

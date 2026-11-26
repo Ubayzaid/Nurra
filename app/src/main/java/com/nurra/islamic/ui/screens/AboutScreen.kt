@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,7 +54,7 @@ import com.nurra.islamic.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onNavigateToUpdate: () -> Unit,
+    onNavigateToUpdate: () -> Unit = {},
     onNavigateToGitHub: () -> Unit,
     onNavigateToDeveloper: () -> Unit,
     onNavigateToDataSource: () -> Unit,
@@ -243,7 +242,6 @@ fun AboutScreen(
                             .fillMaxWidth()
                             .padding(vertical = 10.dp)
                     ) {
-                        AboutSubmenuItem("Pembaruan Aplikasi", Icons.Default.SystemUpdate, onNavigateToUpdate)
                         AboutSubmenuItem("GitHub Repository", Icons.Default.Code, onNavigateToGitHub)
                         AboutSubmenuItem("Pengembang", Icons.Default.Person, onNavigateToDeveloper)
                         AboutSubmenuItem("Sumber Data", Icons.Default.Storage, onNavigateToDataSource)

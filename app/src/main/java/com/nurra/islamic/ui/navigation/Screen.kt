@@ -52,7 +52,7 @@ sealed class Screen(
     object ManageDownloads : Screen("manage_downloads", "Kelola Unduhan", Icons.Filled.Download, Icons.Outlined.Download)
 
     object AboutSettings : Screen("settings_about", "Tentang Nurra", Icons.Filled.Info, Icons.Outlined.Info)
-    object AppUpdate : Screen("settings_about_update", "Pembaruan Aplikasi", Icons.Filled.SystemUpdate, Icons.Outlined.SystemUpdate)
+    object AppUpdate : Screen("settings_app_update", "Update Aplikasi", Icons.Filled.SystemUpdate, Icons.Outlined.SystemUpdate)
     object GitHubInfo : Screen("settings_about_github", "GitHub Repository", Icons.Filled.Code, Icons.Outlined.Code)
     object DeveloperInfo : Screen("settings_about_developer", "Pengembang", Icons.Filled.Info, Icons.Outlined.Info)
     object DataSourceInfo : Screen("settings_about_datasource", "Sumber Data", Icons.Filled.Storage, Icons.Outlined.Storage)

@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,18 +65,26 @@ fun SettingsScreen(
     onNavigateToLocationPicker: () -> Unit,
     onNavigateToNotification: () -> Unit,
     onNavigateToStorage: () -> Unit,
+    onNavigateToAppUpdate: () -> Unit,
     onNavigateToAbout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val settings by viewModel.settings.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    val allCategories = remember(onNavigateToAppearance, onNavigateToLocationPicker, onNavigateToNotification, onNavigateToStorage, onNavigateToAbout) {
+    val allCategories = remember(
+        onNavigateToAppearance,
+        onNavigateToLocationPicker,
+        onNavigateToNotification,
+        onNavigateToStorage,
+        onNavigateToAppUpdate,
+        onNavigateToAbout
+    ) {
         listOf(
             SettingsCategoryItem("Tampilan", Icons.Default.Palette, onNavigateToAppearance),
             SettingsCategoryItem("Lokasi & Jadwal Salat", Icons.Default.LocationOn, onNavigateToLocationPicker),
             SettingsCategoryItem("Notifikasi & Pengingat", Icons.Default.Notifications, onNavigateToNotification),
             SettingsCategoryItem("Data & Penyimpanan", Icons.Default.Storage, onNavigateToStorage),
+            SettingsCategoryItem("Update Aplikasi", Icons.Default.SystemUpdate, onNavigateToAppUpdate),
             SettingsCategoryItem("Tentang Nurra", Icons.Default.Info, onNavigateToAbout)
         )
     }

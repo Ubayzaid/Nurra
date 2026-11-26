@@ -173,6 +173,7 @@ fun NurraNavHost(
                 onNavigateToLocationPicker = { navController.navigate(Screen.LocationSettings.route) },
                 onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
                 onNavigateToStorage = { navController.navigate(Screen.StorageSettings.route) },
+                onNavigateToAppUpdate = { navController.navigate(Screen.AppUpdate.route) },
                 onNavigateToAbout = { navController.navigate(Screen.AboutSettings.route) }
             )
         }
@@ -230,6 +231,7 @@ fun NurraNavHost(
 
         composable(Screen.AppUpdate.route) {
             AppUpdateScreen(
+                viewModel = settingsViewModel,
                 onBackClick = { navController.popBackStack() }
             )
         }

@@ -71,4 +71,12 @@ class SettingsViewModel(
     fun toggleTasbihVibration(enabled: Boolean) {
         repository.toggleTasbihVibration(enabled)
     }
+
+    fun toggleAutoCheckUpdate(enabled: Boolean) {
+        repository.toggleAutoCheckUpdate(enabled)
+    }
+
+    fun toggleUpdateNotification(enabled: Boolean) {
+        repository.toggleUpdateNotification(enabled)
+    }
 }
